@@ -1,0 +1,14 @@
+# Ignore dataset files
+*.zip
+images/
+data/
+# Ignore model checkpoints
+models/
+*.pth
+# Python cache
+__pycache__/
+*.pyc
+# Jupyter checkpoints
+.ipynb_checkpoints/
+# Misc
+*.log
