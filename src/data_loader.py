@@ -20,13 +20,17 @@ def get_dataset(
     # --- Map filenames to full paths ---
     all_image_paths = {}
     needed_files = set(df['Image Index'].values)
+
+    # Loop through each folder and its "images" subfolder
     for folder in os.listdir(image_root):
         if folder.startswith("images_"):
-            folder_path = os.path.join(image_root, folder)
-            for fname in os.listdir(folder_path):
-                if fname in needed_files:
-                    all_image_paths[fname] = os.path.join(folder_path, fname)
+            images_subfolder = os.path.join(image_root, folder, "images")
+            if os.path.exists(images_subfolder):
+                for fname in os.listdir(images_subfolder):
+                    if fname in needed_files:
+                        all_image_paths[fname] = os.path.join(images_subfolder, fname)
 
+    # Map to DataFrame
     df['file_path'] = df['Image Index'].map(all_image_paths)
 
     # --- Drop rows without images ---
@@ -46,9 +50,12 @@ def get_dataset(
         img = img / 255.0
         return img, label
 
-    dataset = tf.data.Dataset.from_tensor_slices((df['file_path'].astype(str).values, label_matrix))
+    dataset = tf.data.Dataset.from_tensor_slices(
+        (df['file_path'].astype(str).values, label_matrix)
+    )
     dataset = dataset.map(load_and_preprocess, num_parallel_calls=tf.data.AUTOTUNE)
 
+    # --- Augmentation ---
     if augment:
         def augment_image(img, label):
             img = tf.image.random_flip_left_right(img)
@@ -56,7 +63,8 @@ def get_dataset(
             return img, label
         dataset = dataset.map(augment_image, num_parallel_calls=tf.data.AUTOTUNE)
 
-    if shuffle:
+    # --- Shuffle, batch, prefetch ---
+    if shuffle and len(df) > 0:
         dataset = dataset.shuffle(buffer_size=len(df))
 
     dataset = dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
