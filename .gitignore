@@ -1,14 +1,92 @@
-# Ignore dataset files
-*.zip
-images/
-data/
-# Ignore model checkpoints
-models/
-*.pth
-# Python cache
+# -------------------------------
+# Python cache & compiled files
+# -------------------------------
 __pycache__/
-*.pyc
-# Jupyter checkpoints
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# -------------------------------
+# Virtual environments
+# -------------------------------
+.venv/
+venv/
+env/
+ENV/
+.nox/
+.conda/
+
+# -------------------------------
+# OS / Editor-specific files
+# -------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# -------------------------------
+# Jupyter Notebook
+# -------------------------------
 .ipynb_checkpoints/
-# Misc
+.notebook_metadata/
+
+# -------------------------------
+# TensorFlow / Keras / PyTorch
+# -------------------------------
+*.h5
+*.hdf5
+*.ckpt
+*.ckpt.*
+checkpoint
+*.pb
+*.tflite
+*.onnx
+saved_model/
+
+# -------------------------------
+# Logs & debug
+# -------------------------------
 *.log
+logs/
+wandb/
+mlruns/
+
+# -------------------------------
+# Large datasets & zips
+# -------------------------------
+data/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+
+# Keep small sample data
+!data/sample/**
+
+# -------------------------------
+# Kaggle & Colab
+# -------------------------------
+kaggle.json
+.colab/
+.colab_metadata
+
+# -------------------------------
+# Build / distribution
+# -------------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+MANIFEST
+
+# -------------------------------
+# Temporary / cache files
+# -------------------------------
+tmp/
+temp/
+.cache/
+__temp__/
