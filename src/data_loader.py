@@ -1,5 +1,3 @@
-
-
 def get_dataset(
     csv_path,
     image_root,
@@ -14,21 +12,14 @@ def get_dataset(
     import tensorflow as tf
     from sklearn.preprocessing import MultiLabelBinarizer
 
-    # Load CSV
+    # --- Load CSV ---
     df = pd.read_csv(csv_path)
     if subset:
         df = df.sample(n=subset, random_state=42).reset_index(drop=True)
 
-    # Process labels
-    df['Finding Labels'] = df['Finding Labels'].str.split('|')
-    mlb = MultiLabelBinarizer()
-    label_matrix = mlb.fit_transform(df['Finding Labels'])
-    class_names = list(mlb.classes_)
-
-    # Only keep files that are in the CSV
-    needed_files = set(df['Image Index'].values)
-
+    # --- Map filenames to full paths ---
     all_image_paths = {}
+    needed_files = set(df['Image Index'].values)
     for folder in os.listdir(image_root):
         if folder.startswith("images_"):
             folder_path = os.path.join(image_root, folder)
@@ -36,12 +27,18 @@ def get_dataset(
                 if fname in needed_files:
                     all_image_paths[fname] = os.path.join(folder_path, fname)
 
-    # Match file paths
     df['file_path'] = df['Image Index'].map(all_image_paths)
-    df = df.dropna(subset=['file_path'])
-    label_matrix = label_matrix[df.index]
 
-    # TF Dataset
+    # --- Drop rows without images ---
+    df = df.dropna(subset=['file_path']).reset_index(drop=True)
+
+    # --- Process labels AFTER dropping NaNs ---
+    df['Finding Labels'] = df['Finding Labels'].str.split('|')
+    mlb = MultiLabelBinarizer()
+    label_matrix = mlb.fit_transform(df['Finding Labels'])
+    class_names = list(mlb.classes_)
+
+    # --- TensorFlow dataset ---
     def load_and_preprocess(path, label):
         img = tf.io.read_file(path)
         img = tf.image.decode_png(img, channels=3)
@@ -49,7 +46,7 @@ def get_dataset(
         img = img / 255.0
         return img, label
 
-    dataset = tf.data.Dataset.from_tensor_slices((df['file_path'].values, label_matrix))
+    dataset = tf.data.Dataset.from_tensor_slices((df['file_path'].astype(str).values, label_matrix))
     dataset = dataset.map(load_and_preprocess, num_parallel_calls=tf.data.AUTOTUNE)
 
     if augment:
